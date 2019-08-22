@@ -1,6 +1,15 @@
 from driver import get_driver
 from fake_account_generator import new_account
+from selenium import webdriver
 import os
+import time
+
+service = webdriver.chrome.service.Service('/usr/bin/chromedriver')
+service.start()  
+options = webdriver.ChromeOptions()                
+options.add_argument('--headless')
+options = options.to_capabilities()
+dri = webdriver.Remote(service.service_url, options)
 
 
 class BOT():
@@ -13,6 +22,7 @@ class BOT():
         self.driver = None
 
     def new_account(self):
+        global dri
         self.account_info = new_account()
         self.user_name = self.account_info['username']
         self.password = self.account_info['password']
@@ -20,14 +30,16 @@ class BOT():
         self.fullname = self.account_info['name']
         if self.driver is not None:
             self.driver.quit() 
-        self.driver = get_chrome_driver()
+        self.driver = dri
+        print("[***] Fake Data Generated Success!")
     
     def signup(self):
+        print("[***] Filling Form of Signup!")
         url = 'https://instagram.com/accounts/emailsignup/'
         self.driver.get(url)
         while True:
             try:
-                
+           
                 email_field = self.driver.find_element_by_name('emailOrPhone')
 
                 fullname_field = self.driver.find_element_by_name('fullName')
@@ -47,28 +59,31 @@ class BOT():
                 submit = None
                 try:
                     submit = self.driver.find_element_by_xpath("//button[text()='Sign up']")
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 try:
                     submit = self.driver.find_element_by_xpath("//button[@type='submit']")
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 submit.click()
                 time.sleep(5)
                 break
             except Exception as e:
-                pass
+                print(e)
+        
+        try:
+            notif=self.driver.find_element_by_xpath("//p[@class='Ma93n']")
+            print(notif.text)
+        except Exception as e:
+            print(e)
+        
         try:
             banned = self.driver.find_element_by_xpath("//p[text()='Sorry, something went wrong creating your account. Please try again soon.']")
             print("[***] Sorry, something went wrong creating your account")
             return False
         except Exception as e:
-            print("[!!] Oopes ! Insta Detect me !")
-        try:
-            notif=driver.find_element_by_xpath("//p[@class='Ma93n']")
-            print(notif.text())
-        except:
-            pass
+            print("[!!] Oopes ! Insta Detect me !",e)
+        
         try:
             under = self.driver.find_element_by_xpath("//input[@value='under_18']")
             older = self.driver.find_element_by_xpath("//input[@value='above_18']")
@@ -82,13 +97,13 @@ class BOT():
             btn = self.driver.find_elements_by_xpath("//button[@type='button']")[-1]
             btn.click()
             time.sleep(5)
-        except:
-            pass
+        except Exception as e:
+            print(e)
         try:
             banned = self.driver.find_element_by_xpath("//p[text()='Sorry, something went wrong creating your account. Please try again soon.']")
             return False
         except Exception as e:
-            pass
+            print(e)
 
         return True
 
@@ -117,8 +132,6 @@ class BOT():
 
 if __name__ == "__main__":
     bot = BOT()
-    # res = False
-    # while not bool(res):
     bot.new_account()
     res = bot.signup()
     if res:
